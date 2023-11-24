@@ -1,6 +1,4 @@
-import cv2 as cv 
+import requests
 
-video = cv.VideoCapture()
-
-while True: 
-    video.read()
+x = requests.get('https://aerialview.googleapis.com/v1/videos:lookupVideo   ')
+print(x)
