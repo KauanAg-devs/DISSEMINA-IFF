@@ -3,78 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imagem com Círculo</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #map {
-            height: 100vh;
-        }
-
-        #map img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* Centraliza a imagem */
-        }
-    </style>
-    <!-- Inclua os arquivos Leaflet CSS e JS -->
+    <title>Mapa Interativo</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; }
+        #altitude { position: absolute; top: 10px; left: 10px; background: white; padding: 5px; border-radius: 5px; }
+    </style>
 </head>
 <body>
 
-<!-- Crie um contêiner para o mapa -->
 <div id="map"></div>
+<div id="altitude"></div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Inicialize o mapa
-        const map = L.map('map').setView([-22.1086, -41.4711], 12);
-        // Adicione um Layer do OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // Coordenadas de Quissamã, Rio de Janeiro, Brasil
+    var quissamaCoordinates = [-21.4558, -41.4639];
+    var altitudeQuissama = 1000; // Altitude inicial em metros acima do nível do mar
 
-        // Crie um elemento de imagem
-        const img = new Image();
-        img.src = 'https://img.nuclearsecrecy.com/nukemap_marker.svg';
+    var map = L.map('map').setView(quissamaCoordinates, 12); // Inicie o mapa em Quissamã com um zoom de 12
 
-        // Adicione a imagem ao contêiner do mapa
-        map.getPane('overlayPane').appendChild(img);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-        // Inicialize a posição da imagem
-        updateImagePosition(map.getCenter());
-
-        // Adicione um evento de clique no mapa
-        map.on('click', function (event) {
-            // Atualize a posição da imagem quando o mapa for clicado
-            updateImagePosition(event.latlng);
-
-            // Remova círculos antigos (se existirem)
-            map.eachLayer(layer => {
-                if (layer instanceof L.Circle) {
-                    map.removeLayer(layer);
-                }
-            });
-
-            // Adicione um novo círculo ao redor da imagem
-            const circle = L.circle(event.latlng, { radius: 3500 }).addTo(map);
-            const circle2 = L.circle(event.latlng, { radius: 500, color: 'red',fillColor: 'red', }).addTo(map);
-
-            // Centralize o círculo na imagem
-            const imgDimensions = img.getBoundingClientRect();
-            circle.setLatLng(map.layerPointToLatLng([event.layerPoint.x - imgDimensions.width]));
-            circle2.setLatLng(map.layerPointToLatLng([event.layerPoint.x - imgDimensions.width]));
-
-        });
-
-        // Função para atualizar a posição da imagem
-        function updateImagePosition(latlng) {
-            const markerPos = map.latLngToLayerPoint(latlng);
-            img.style.transform = `translate(${markerPos.x-30}px, ${markerPos.y-75  }px)`;
-        }
+    map.on('zoomend', function () {
+        // Calcule a altitude com base na latitude e na resolução do zoom
+        var latitude = quissamaCoordinates[0];
+        var zoom = map.getZoom();
+        var altitude = altitudeQuissama * Math.pow(2, 14 - zoom) * Math.cos(latitude * Math.PI / 180);
+        
+        document.getElementById('altitude').innerHTML = 'Altitude: ' + altitude.toFixed(2) + ' metros';
+        console.log(altitude.toFixed(2)+" metros");
     });
 </script>
 
