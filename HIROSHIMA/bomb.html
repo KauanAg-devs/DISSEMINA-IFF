@@ -8,20 +8,22 @@
     <style>
         body { margin: 0; padding: 0; }
 
-        #map { height: calc(100vh - 50px); } /* Ajuste de altura para permitir espaço para os botões */
+        #map { height: calc(100vh); } /* Ajuste de altura para permitir espaço para os botões */
         #altitude { position: absolute; top: 10px; left: 10px; background: white; padding: 5px; border-radius: 5px; }
 
-        /* Novo estilo para os botões */
         #zoomButtons { position: absolute; top: 10px; left: 10px; z-index: 1000; }
         #zoomButtons button { margin-bottom: 5px; }
     </style>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
 </head>
 <body>
 
 <div id="map"></div>
 <div id="altitude"></div>
-<!-- Adicione botões de zoom -->
-<div id="zoomButtons">
+<div id="zoomButtons" style="display: none;">
     <button id="zoomInBtn">Zoom In</button>
     <button id="zoomOutBtn">Zoom Out</button>
 </div>
@@ -29,26 +31,26 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
     var quissamaCoordinates = [-22.1060, -41.4730];
-    var altitude = 30; // Altitude inicial em metros acima do nível do mar
+    var altitude = 30; 
     var map = L.map('map').setView(quissamaCoordinates, 18);
-    console.log(altitude);
+    console.log(altitude+' metros');
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
+    L.control.scale().addTo(map)
 
     map.on('zoomend', function () {
         document.getElementById('altitude').innerHTML = 'Altitude: ' + altitude.toFixed(2) + ' metros';
-        console.log((altitude.toFixed(2) > 100 ? (altitude+10).toFixed(2) : altitude.toFixed(2))+' metros');
+        console.log(altitude.toFixed(2)+' metros');
     });
 
-    // Adicione eventos de clique nos botões de zoom
     document.getElementById('zoomInBtn').addEventListener('click', function () {
-        altitude /= 2; // Diminuir altitude ao clicar em zoom in
+        altitude -= 30; 
         map.zoomIn();
     });
 
     document.getElementById('zoomOutBtn').addEventListener('click', function () {
-        altitude *= 2; // Aumentar altitude ao clicar em zoom out
+        altitude += 30; 
         map.zoomOut();
     });
 
@@ -61,7 +63,6 @@ map.on('click', function (event) {
         }
     });
 
-    // Adicione um novo círculo ao redor do local clicado
     L.circle(event.latlng, {
         color: 'black',
         fillOpacity: 0.5,
@@ -80,12 +81,11 @@ map.on('click', function (event) {
         fillOpacity: 0.6,
         radius: 2000
     }).addTo(map);
-    // Remova o marcador existente se houver
+
     if (bombMarker) {
         map.removeLayer(bombMarker);
     }
 
-    // Adicione a imagem ao mapa na posição do clique
     var bombIcon = L.icon({
         iconUrl: 'https://img.nuclearsecrecy.com/nukemap_marker.svg',
         iconSize: [30, 30],
@@ -100,10 +100,8 @@ map.on('click', function (event) {
  
 
 
-    // Adicione a imagem ao mapa na posição do clique
     var bombImage = L.imageOverlay('https://img.nuclearsecrecy.com/nukemap_marker.svg', event.latlng, { zoomAnimation: false, attribution: 'Image Attribution' }).addTo(map);
 
-    // Atualize a posição da imagem quando o mapa é movido ou redimensionado
     map.on('move', function () {
         bombImage.setLatLng(map.getCenter());
     });
